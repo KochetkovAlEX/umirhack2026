@@ -23,4 +23,4 @@ async def send_news(message: Message) -> None:
 @router.message(Command("db"))
 async def send_help(message: Message) -> None:
     await database_crud.reload_database()
-    await message.answer("Database reloaded successfully!")
+    await message.answer("База данных успешно обновлена!")
