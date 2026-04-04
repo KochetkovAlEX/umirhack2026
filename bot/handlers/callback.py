@@ -1,5 +1,5 @@
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery
 
 from bot.database.request import get_content_by_category
 from bot.keyboard.inline import CANCEL_BUTTON

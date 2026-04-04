@@ -32,11 +32,11 @@ async def reload_database() -> None:
         await con.run_sync(Base.metadata.create_all)
 
 
-async def insert_data(**kwargs) -> bool:
+async def insert_data(item_dict: dict) -> bool:
     """Функция добавления данных"""
     try:
         async with async_session() as session:
-            stmt = insert(Content).values(**kwargs)
+            stmt = insert(Content).values(**item_dict)
 
             stmt = stmt.on_conflict_do_nothing(index_elements=["title"])
 

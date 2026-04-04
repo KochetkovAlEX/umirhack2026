@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
@@ -5,6 +7,7 @@ from aiogram.types import Message
 from bot.database import request as database_crud
 from bot.database.request import get_topics
 from bot.keyboard import inline
+from parsers import sites, vkpars
 
 router = Router()
 
@@ -23,9 +26,19 @@ async def greeting(message: Message) -> None:
 
 
 @router.message(Command("news"))
-async def send_news(message: Message) -> None:
-    """Функция получения новостей"""
-    pass
+async def add_news(message: Message) -> None:
+    """Функция заполнения базы данных"""
+    sites_data = await sites.parse_rss()
+    vk_data = await vkpars.find_groups_by_name()
+    for item in sites_data:
+        await database_crud.insert_data(item)
+
+    await message.answer("Данные СМИ добавлены")
+
+    for item in vk_data:
+        await database_crud.insert_data(item)
+
+    await message.answer("Данные чатов добавлены")
 
 
 @router.message(Command("db"))
