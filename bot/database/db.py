@@ -18,7 +18,7 @@ class Content(Base):
         DateTime(timezone=True), nullable=True
     )
     category: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=False, unique=True)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     views: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
