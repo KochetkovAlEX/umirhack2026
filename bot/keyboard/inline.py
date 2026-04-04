@@ -1,19 +1,55 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-inline_kb = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(text="Новости за сегодня", callback_data="today"),
-            InlineKeyboardButton(text="Новости за неделю", callback_data="week")
-        ],
-        [
-            InlineKeyboardButton(text="Десять самых актуальных новостей", callback_data="ten_popular")
-        ]
-    ]
-)
+topics = ["Хакатон1", "Хакатон2", "Хакатон3", "Хакатон4", "Хакатон5"]
+# inline_kb = InlineKeyboardMarkup(
+#     inline_keyboard=[
+#         [
+#             InlineKeyboardButton(
+#                 text=f"Десять самых актульаных новостей по теме {topics[0]}",
+#                 callback_data=f"{topics[0]}",
+#             ),
+#         ],
+#         [
+#             InlineKeyboardButton(
+#                 text=f"Десять самых актульаных новостей по теме {topics[1]}",
+#                 callback_data=f"{topics[1]}",
+#             ),
+#         ],
+#         [
+#             InlineKeyboardButton(
+#                 text=f"Десять самых актульаных новостей по теме {topics[2]}",
+#                 callback_data=f"{topics[2]}",
+#             ),
+#         ],
+#         [
+#             InlineKeyboardButton(
+#                 text=f"Десять самых актульаных новостей по теме {topics[3]}",
+#                 callback_data=f"{topics[3]}",
+#             ),
+#         ],
+#         [
+#             InlineKeyboardButton(
+#                 text=f"Десять самых актульаных новостей по теме {topics[4]}",
+#                 callback_data=f"{topics[4]}",
+#             ),
+#         ],
+#     ]
+# )
 
-cancel_inline_kb = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [InlineKeyboardButton(text="Назад", callback_data="cancel")],
-    ]
+
+def generate_inline_kb(topics: list):
+    builder = InlineKeyboardBuilder()
+    for topic in topics:
+        builder.button(
+            text=f"Десять самых актульаных новостей по теме {topic}",
+            callback_data=f"topic_{topic}",
+        )
+
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+cancel_button = InlineKeyboardMarkup(
+    inline_keyboard=[[InlineKeyboardButton(text="Назад", callback_data="cancel")]]
 )

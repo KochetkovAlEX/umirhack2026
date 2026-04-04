@@ -11,7 +11,8 @@ router = Router()
 @router.message(CommandStart())
 async def greeting(message: Message) -> None:
     await message.answer_photo(
-        photo="https://png.klev.club/1733-novosti.html", reply_markup=inline.inline_kb
+        photo="https://png.klev.club/1733-novosti.html",
+        reply_markup=inline.inline_kb,
     )
 
 

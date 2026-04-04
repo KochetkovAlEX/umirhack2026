@@ -1,29 +1,19 @@
 import os
 
 from dotenv import load_dotenv
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from .db import Base, Content
 
 load_dotenv()
 
-user = os.getenv("DB_USER", "postgres")
-password = os.getenv("DB_PASSWORD", "postgres")
-db_name = os.getenv("DB_NAME", "umirhack_db")
-db_host = os.getenv("DB_HOST", "localhost")
-db_port = os.getenv("DB_PORT", "5432")
+user = os.getenv("DB_USER")
+password = os.getenv("DB_PASSWORD")
+db_name = os.getenv("DB_NAME")
+db_host = os.getenv("DB_HOST")
+db_port = os.getenv("DB_PORT")
 
-# Validate environment variables
-if not all([user, password, db_name, db_host, db_port]):
-    raise ValueError(
-        "Missing database configuration. Please check your .env file.\n"
-        f"DB_USER: {'✓' if user else '✗ MISSING'}\n"
-        f"DB_PASSWORD: {'✓' if password else '✗ MISSING'}\n"
-        f"DB_NAME: {'✓' if db_name else '✗ MISSING'}\n"
-        f"DB_HOST: {'✓' if db_host else '✗ MISSING'}\n"
-        f"DB_PORT: {'✓' if db_port else '✗ MISSING'}"
-    )
 
 DATABASE_URL = f"postgresql+asyncpg://{user}:{password}@{db_host}:{db_port}/{db_name}"
 
@@ -41,8 +31,15 @@ async def reload_database() -> None:
         await con.run_sync(Base.metadata.create_all)
 
 
-async def insert_data(**kwargs):
-    pass
+async def insert_data(**kwargs) -> bool:
+    try:
+        async with async_session() as session:
+            await session.execute(insert(Content).values(**kwargs))
+            await session.commit()
+        return True
+    except Exception as e:
+        print(f"Ошибка вставки: {e}")
+        return False
 
 
 async def update_data(id: int, **kwargs):
@@ -51,3 +48,12 @@ async def update_data(id: int, **kwargs):
 
 async def delete_data(id: int):
     pass
+
+
+async def get_content_by_category(category: str) -> list:
+    async with async_session() as session:
+        content = await session.scalars(
+            select(Content).where(Content.category == category)
+        )
+        content_all = content.all()
+        return list(content_all)
