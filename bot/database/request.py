@@ -1,7 +1,8 @@
 import os
 
 from dotenv import load_dotenv
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import delete, select, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from .db import Base, Content
@@ -32,11 +33,16 @@ async def reload_database() -> None:
 
 
 async def insert_data(**kwargs) -> bool:
+    """Функция добавления данных"""
     try:
         async with async_session() as session:
-            await session.execute(insert(Content).values(**kwargs))
+            stmt = insert(Content).values(**kwargs)
+
+            stmt = stmt.on_conflict_do_nothing(index_elements=["title"])
+
+            await session.execute(stmt)
             await session.commit()
-        return True
+            return True
     except Exception as e:
         print(f"Ошибка вставки: {e}")
         return False
@@ -51,9 +57,18 @@ async def delete_data(id: int):
 
 
 async def get_content_by_category(category: str) -> list:
+    """Функция получения данных"""
     async with async_session() as session:
         content = await session.scalars(
-            select(Content).where(Content.category == category)
+            select(Content).where(Content.category == category).limit(10)
         )
         content_all = content.all()
         return list(content_all)
+
+
+async def get_topics() -> list:
+    async with async_session() as session:
+        content = (
+            await session.scalars(select(Content.category).distinct())
+        ).all()  # уникальные
+        return list(content)

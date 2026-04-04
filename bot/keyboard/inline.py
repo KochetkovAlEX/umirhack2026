@@ -39,10 +39,11 @@ topics = ["Хакатон1", "Хакатон2", "Хакатон3", "Хакато
 
 
 def generate_inline_kb(topics: list):
+    """Функция для создания кнопок"""
     builder = InlineKeyboardBuilder()
     for topic in topics:
         builder.button(
-            text=f"Десять самых актульаных новостей по теме {topic}",
+            text=f"Актуальное по теме {topic}",
             callback_data=f"topic_{topic}",
         )
 
@@ -50,6 +51,11 @@ def generate_inline_kb(topics: list):
     return builder.as_markup()
 
 
-cancel_button = InlineKeyboardMarkup(
+CANCEL_BUTTON = InlineKeyboardMarkup(
     inline_keyboard=[[InlineKeyboardButton(text="Назад", callback_data="cancel")]]
+)
+
+
+NONE_BUTTON = InlineKeyboardMarkup(
+    inline_keyboard=[[InlineKeyboardButton(text="Проблем нет", callback_data="pass")]]
 )
