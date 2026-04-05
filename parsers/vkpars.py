@@ -60,7 +60,7 @@ async def find_groups_by_name():
 
                 results.append(
                     {
-                        "id": number_list,
+                        # "id": number_list,
                         "source": f"https://vk.com/{group['screen_name']}",
                         "source_type": "Вконтакте",
                         "category": None,

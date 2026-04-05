@@ -86,7 +86,7 @@ async def parse_telegram(urls=tg_urls, limit_posts: int = 60):
 
                 results.append(
                     {
-                        "id": news_number,
+                        # "id": news_number,
                         "source": url,
                         "source_type": "Парсинг из Телеграмма",
                         "date": pub_date if pub_date else None,
