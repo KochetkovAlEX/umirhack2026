@@ -61,7 +61,7 @@ async def parse_telegram(urls=tg_urls, limit_posts: int = 60):
 
                 views = msg.find("span", class_="tgme_widget_message_views").get_text()
 
-                pub_date = None
+                pub_date = datetime.now()
                 time_tag = msg.find("time")
                 if time_tag and "datetime" in time_tag.attrs:
                     pub_date = datetime.fromisoformat(
@@ -89,14 +89,14 @@ async def parse_telegram(urls=tg_urls, limit_posts: int = 60):
                         # "id": news_number,
                         "source": url,
                         "source_type": "Парсинг из Телеграмма",
-                        "date": pub_date if pub_date else None,
+                        "date": pub_date,
                         "title": " ".join(content[:150].split())
                         if content
                         else "Нет текста",
                         "text": " ".join(content.split()),
                         "url": url,
                         "activity": None,
-                        "views": views,
+                        "views": int(views),
                         "likes": total_reactions,
                     }
                 )

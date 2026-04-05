@@ -72,3 +72,9 @@ async def get_topics() -> list:
             await session.scalars(select(Content.category).distinct())
         ).all()  # уникальные
         return list(content)
+
+
+async def get_all_data() -> list:
+    async with async_session() as session:
+        content = (await session.scalars(select(Content))).all()  # уникальные
+        return list(content)
