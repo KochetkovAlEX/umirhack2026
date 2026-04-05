@@ -26,7 +26,7 @@ async def find_groups_by_name():
     for group in groups["items"]:
         group_id = group["id"]
         try:
-            wall = vk.wall.get(owner_id=-group_id, count=25)
+            wall = vk.wall.get(owner_id=-group_id, count=30)
             found_recent = False
             for post in wall["items"]:
                 number_list += 1

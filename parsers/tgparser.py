@@ -27,10 +27,7 @@ tg_urls = [
     "https://t.me/s/taganrog_chp61",
     "https://t.me/s/Novoshakhtinsk61",
     "https://t.me/s/novochtoday",
-    "https://t.me/s/online_kamensk",
-    "https://t.me/s/overhear_vkamenske, https://t.me/s/bloknot_vdonsk1"
     "https://t.me/s/my_bataysk",
-    "https://t.me/s/azov_v_kurse",
     "https://t.me/s/azovnews161",
 ]
 
@@ -60,6 +57,13 @@ async def parse_telegram(urls=tg_urls, limit_posts: int = 60):
                 content = text_div.get_text(separator=" ").strip() if text_div else ""
 
                 views = msg.find("span", class_="tgme_widget_message_views").get_text()
+
+                if "K" in views:
+                    views = int(float(views.replace("K", "")) * 1000)
+                elif "M" in views:
+                    views = int(float(views.replace("M", "")) * 1000000)
+                else:
+                    views = int(views)
 
                 pub_date = datetime.now()
                 time_tag = msg.find("time")
