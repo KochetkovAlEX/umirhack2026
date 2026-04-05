@@ -7,7 +7,7 @@ from aiogram.types import Message
 from bot.database import request as database_crud
 from bot.database.request import get_topics
 from bot.keyboard import inline
-from parsers import sites, tg_groups_parser, vkpars
+from parsers import sites, tg_groups_parser, tgparser, vkpars
 
 router = Router()
 
@@ -31,11 +31,15 @@ async def add_news(message: Message) -> None:
     start_time = datetime.now()
     sites_data = await sites.parse_rss()
     vk_data = await vkpars.find_groups_by_name()
-    tg_data = await tg_groups_parser.use_auth(tg_groups_parser.TARGET_CHATS)
+    tg_group_data = await tg_groups_parser.use_auth(tg_groups_parser.TARGET_CHATS)
+    tg_data = await tgparser.parse_telegram()
     for item in sites_data:
         await database_crud.insert_data(item)
 
     for item in vk_data:
+        await database_crud.insert_data(item)
+
+    for item in tg_group_data:
         await database_crud.insert_data(item)
 
     for item in tg_data:

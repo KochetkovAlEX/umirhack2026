@@ -13,13 +13,13 @@ seconds_in_day = 24 * 60 * 60
 time_threshold = int(time.time()) - seconds_in_day
 
 
-def get_token_data(TOKEN: str) -> vk_api.vk_api.VkApiMethod:
+async def get_token_data(TOKEN: str) -> vk_api.vk_api.VkApiMethod:
     vk_session = vk_api.VkApi(token=TOKEN)
     return vk_session.get_api()
 
 
-def find_groups_by_name():
-    vk = get_token_data(TOKEN)
+async def find_groups_by_name():
+    vk = await get_token_data(TOKEN)
     results = []
     groups = vk.groups.search(q=query, count=7)
     number_list = 0
@@ -53,13 +53,10 @@ def find_groups_by_name():
 
                 text = post.get("text", None)
                 title = text.split("\n")[0][:150]
-                date_readable = datetime.fromtimestamp(post_date).strftime(
-                    "%H:%M:%S %d.%m.%Y"
-                )
+                date_readable = datetime.fromtimestamp(post_date)
 
                 likes = post.get("likes", {}).get("count", 0)
                 views = post.get("views", {}).get("count", 0)
-                link = f"Ссылка: https://vk.com/{group['screen_name']}"
 
                 results.append(
                     {

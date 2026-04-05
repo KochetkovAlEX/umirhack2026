@@ -11,6 +11,7 @@ attrs==26.1.0
 beautifulsoup4==4.14.3
 certifi==2026.2.25
 charset-normalizer==3.4.7
+chromium==0.0.0
 colorama==0.4.6
 comm==0.2.3
 debugpy==1.8.20
@@ -28,6 +29,7 @@ ipython_pygments_lexers==1.1.1
 jedi==0.19.2
 jupyter_client==8.8.0
 jupyter_core==5.9.1
+lxml==6.0.2
 magic-filter==1.0.12
 matplotlib-inline==0.2.1
 multidict==6.7.1
@@ -35,12 +37,14 @@ nest-asyncio==1.6.0
 packaging==26.0
 parso==0.8.6
 platformdirs==4.9.4
+playwright==1.58.0
 prompt_toolkit==3.0.52
 propcache==0.4.1
 psutil==7.2.2
 pure_eval==0.2.3
 pydantic==2.12.5
 pydantic_core==2.41.5
+pyee==13.0.1
 Pygments==2.20.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
