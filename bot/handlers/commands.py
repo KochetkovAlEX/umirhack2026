@@ -1,4 +1,4 @@
-import asyncio
+from datetime import datetime
 
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
@@ -7,7 +7,7 @@ from aiogram.types import Message
 from bot.database import request as database_crud
 from bot.database.request import get_topics
 from bot.keyboard import inline
-from parsers import sites, vkpars
+from parsers import sites, tg_groups_parser, vkpars
 
 router = Router()
 
@@ -28,17 +28,21 @@ async def greeting(message: Message) -> None:
 @router.message(Command("news"))
 async def add_news(message: Message) -> None:
     """Функция заполнения базы данных"""
+    start_time = datetime.now()
     sites_data = await sites.parse_rss()
     vk_data = await vkpars.find_groups_by_name()
+    tg_data = await tg_groups_parser.use_auth(tg_groups_parser.TARGET_CHATS)
     for item in sites_data:
         await database_crud.insert_data(item)
-
-    await message.answer("Данные СМИ добавлены")
 
     for item in vk_data:
         await database_crud.insert_data(item)
 
-    await message.answer("Данные чатов добавлены")
+    for item in tg_data:
+        await database_crud.insert_data(item)
+
+    end_time = datetime.now()
+    await message.answer(f"Данные добавлены. Время: {end_time - start_time}")
 
 
 @router.message(Command("db"))

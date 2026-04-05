@@ -19,14 +19,15 @@ class Content(Base):
         DateTime(timezone=True), nullable=True
     )
     category: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    title: Mapped[str] = mapped_column(String(500), nullable=False, unique=True)
-    text: Mapped[str] = mapped_column(Text, nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=True, unique=True)
+    text: Mapped[str] = mapped_column(Text, nullable=True)
     url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     views: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     likes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     comments_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     activity: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     comments: Mapped[Optional[list[str]]] = mapped_column(JSONB, nullable=True)
+    city: Mapped[str] = mapped_column(Text, nullable=True)
 
 
 class SummurizedContent(Base):
@@ -39,13 +40,13 @@ class SummurizedContent(Base):
         DateTime(timezone=True), nullable=True
     )
     category: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    title: Mapped[str] = mapped_column(String(500), nullable=False, unique=True)
-    text: Mapped[str] = mapped_column(Text, nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=True, unique=True)
+    text: Mapped[str] = mapped_column(Text, nullable=True)
     url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     views: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     likes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     comments_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     activity: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     comments: Mapped[Optional[list[str]]] = mapped_column(JSONB, nullable=True)
-
+    city: Mapped[str] = mapped_column(Text, nullable=True)
     content_id: Mapped[int] = mapped_column(ForeignKey("content.id"))

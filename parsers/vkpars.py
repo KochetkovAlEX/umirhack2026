@@ -8,30 +8,30 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TOKEN = os.getenv("VKAPI_TOKEN")
-query = "Ростов-На-Дону"
-seconds_in_day = 24 * 60 * 60 * 7  # промежуток сбора данных
+query = "Новости Ростов-На-Дону"
+seconds_in_day = 24 * 60 * 60
 time_threshold = int(time.time()) - seconds_in_day
 
 
-async def get_token_data(TOKEN: str) -> vk_api.vk_api.VkApiMethod:
+def get_token_data(TOKEN: str) -> vk_api.vk_api.VkApiMethod:
     vk_session = vk_api.VkApi(token=TOKEN)
     return vk_session.get_api()
 
 
-async def find_groups_by_name() -> list:
-    vk = await get_token_data(TOKEN)
+def find_groups_by_name():
+    vk = get_token_data(TOKEN)
     results = []
-    groups = vk.groups.search(q=query, count=50)
+    groups = vk.groups.search(q=query, count=7)
     number_list = 0
     for group in groups["items"]:
         group_id = group["id"]
         try:
-            wall = vk.wall.get(owner_id=-group_id, count=100)
+            wall = vk.wall.get(owner_id=-group_id, count=25)
             found_recent = False
             for post in wall["items"]:
+                number_list += 1
                 post_id = post["id"]
                 owner_id = post["owner_id"]
-                number_list += 1
 
                 comments_list = []
                 if post.get("comments", {}).get("count", 0) > 0:
@@ -53,9 +53,8 @@ async def find_groups_by_name() -> list:
 
                 text = post.get("text", None)
                 title = text.split("\n")[0][:150]
-                date_readable = datetime.strptime(
-                    datetime.fromtimestamp(post_date).strftime("%H:%M:%S %d.%m.%Y"),
-                    "%H:%M:%S %d.%m.%Y",
+                date_readable = datetime.fromtimestamp(post_date).strftime(
+                    "%H:%M:%S %d.%m.%Y"
                 )
 
                 likes = post.get("likes", {}).get("count", 0)
@@ -64,7 +63,7 @@ async def find_groups_by_name() -> list:
 
                 results.append(
                     {
-                        # "id": number_list,
+                        "id": number_list,
                         "source": f"https://vk.com/{group['screen_name']}",
                         "source_type": "Вконтакте",
                         "category": None,
@@ -72,7 +71,6 @@ async def find_groups_by_name() -> list:
                         "title": title,
                         "text": text,
                         "url": f"https://vk.com/{group['screen_name']}?w=wall{owner_id}_{post_id}",
-                        "activity": views // 1000 + likes + len(comments_list),
                         "views": views,
                         "likes": likes,
                         "comments_count": len(comments_list),
@@ -82,8 +80,7 @@ async def find_groups_by_name() -> list:
 
             if not found_recent:
                 print("За последние 24 часа постов не найдено.")
-            return results
-
         except Exception as e:
             print(f"Ошибка при работе с группой {group_id}: {e}")
-            return list()
+
+    return results
