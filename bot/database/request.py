@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from sqlalchemy import delete, select, update
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
@@ -48,33 +48,15 @@ async def insert_data(item_dict: dict) -> bool:
         return False
 
 
-async def update_data(id: int, **kwargs):
-    pass
-
-
-async def delete_data(id: int):
-    pass
-
-
-async def get_content_by_category(category: str) -> list:
-    """Функция получения данных"""
-    async with async_session() as session:
-        content = await session.scalars(
-            select(Content).where(Content.category == category).limit(10)
-        )
-        content_all = content.all()
-        return list(content_all)
-
-
 async def get_topics() -> list:
     async with async_session() as session:
         content = (
             await session.scalars(select(Content.category).distinct())
-        ).all()  # уникальные
+        ).all()
         return list(content)
 
 
 async def get_all_data() -> list:
     async with async_session() as session:
-        content = (await session.scalars(select(Content))).all()  # уникальные
+        content = (await session.scalars(select(Content))).all()
         return list(content)

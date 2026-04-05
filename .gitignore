@@ -213,4 +213,9 @@ marimo/_lsp/
 __marimo__/
 
 # Streamlit
-.streamlit/secrets.toml
+.streamlit/secrets.toml\
+
+# ML models (large files)
+models/models/
+
+

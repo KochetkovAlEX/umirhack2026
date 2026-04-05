@@ -19,11 +19,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from transformers import pipeline
 from umap import UMAP
 
-PATH_TOX = "./models/rubert-tiny-toxicity"
-PATH_SPAM = "./models/spamNS_v1"
-PATH_EMB = "./models/rubert-tiny2"
-URG_FILE = "urgency_keywords.txt"
-STOP_WORDS_FILE = "stop_words.txt"
+PATH_TOX = "models/models/rubert-tiny2"
+PATH_SPAM = "models/models/rubert-tiny2"
+PATH_EMB = "models/models/rubert-tiny2"
+URG_FILE = "models/urgency_keywords.txt"
+STOP_WORDS_FILE = "models/stop_words.txt"
 
 MIN_TOPIC_SIZE = 3
 EMERGENCY_WINDOW = 2  # количесвто часов, для отслеживания взрывной активности
@@ -113,9 +113,17 @@ async def refine_with_gemini(title, messages):
     """
     Функция для обработки одной темы через Gemini
     """
-    messages_context = (
-        title + "\n" + "\n".join(messages)
-    )  # Берем первые 10 сообщений темы
+    # Защита:确保 messages - это список строк
+    if not isinstance(messages, list):
+        messages = []
+    
+    # Фильтруем только строковые значения
+    valid_messages = [str(m) for m in messages if m is not None and str(m).strip()]
+    
+    if not valid_messages:
+        return {"title": title, "items": []}
+    
+    messages_context = title + "\n" + "\n".join(valid_messages)
 
     prompt = f"""
     Ты — аналитик ситуационного центра. Ты получаешь группы, сгенерированные BERTopic. Твоя задача
@@ -152,6 +160,10 @@ async def process_final_report(report_df):
     for index, row in top_report.iterrows():
         old_title = row["Name"]
         messages = row["messages"]
+        
+        # Защита от NaN и пустых значений
+        if not isinstance(messages, list) or len(messages) == 0:
+            continue
 
         # Вызывает функцию
         # Передает заголовок и список сообщений
@@ -250,9 +262,18 @@ def analyze(data):
 
     # Создаем словарь: ключ — ID темы, значение — список текстов
     topic_messages = df.groupby("topic")["title"].apply(list).to_dict()
+    topic_links = df.groupby("topic").apply(
+        lambda g: [
+            row["url"] if row["url"] and str(row["url"]).strip()
+            else row["source"] if row["source"] and str(row["source"]).strip()
+            else ""
+            for _, row in g.iterrows()
+        ]
+    ).to_dict()
 
-    # Добавляем этот список в итоговую таблицу
-    res["messages"] = res.index.map(topic_messages)
+    # Добавляем этот список в итоговую таблицу (с защитой от NaN)
+    res["messages"] = res.index.map(lambda x: topic_messages.get(x, []))
+    res["links"] = res.index.map(lambda x: topic_links.get(x, []))
 
     return res.join(
         topic_model.get_topic_info().set_index("Topic")[["Name"]]
@@ -273,48 +294,6 @@ async def get_results(data):
     report = await analyze_async(data)
 
     if not report.empty:
-        # 2. Уточнение через Gemini (LLM)
         final_report = await process_final_report(report)
         return final_report
-    return 0
-
-
-if __name__ == "__main__":
-    tg_chan_data = asyncio.run(parse_telegram(tg_urls))
-
-    results = asyncio.run(get_results(tg_chan_data))
-
-    if not results.empty:
-        for _, row in results.iterrows():
-            # 1. Заголовок и основной индекс
-            print(f"\n📍 ТЕМА: {row['Name'].upper()}")
-            print(f"🔥 ИНДЕКС КРИТИЧНОСТИ: {row['idx']:.2f}")
-
-            # 2. Полная статистика по теме
-            print(f"📈 СТАТИСТИКА:")
-            print(
-                f"   • Сообщений (n): {int(row['n'])} | Число сообщений за последние 2 часа: {int(row['v'])}"
-            )
-            print(
-                f"   • Индекс негатива (e): {row['e']:.2f} | Срочность (u): {row['u']:.1f}"
-            )
-            print(f"   " + "-" * 30)
-
-            # 3. Список сообщений со ссылками
-            print(f"📝 СООБЩЕНИЯ:")
-
-            # Если Gemini вернула только тексты, сопоставляем их со ссылками из оригинала
-            # Здесь предполагается, что в row['messages_with_links'] лежат пары (текст, ссылка)
-            for msg_text in row["messages"][:5]:
-                # Укорачиваем текст для вывода, если он слишком длинный
-                display_text = (
-                    (msg_text[:100] + "...") if len(str(msg_text)) > 100 else msg_text
-                )
-                print(f"   • {display_text}")
-                print()  # Отступ между сообщениями
-
-            if row["n"] > 5:
-                print(f"   ... и еще {int(row['n']) - 5} сообщений в этой категории.")
-
-    else:
-        print("Тем нет")
+    return pd.DataFrame()

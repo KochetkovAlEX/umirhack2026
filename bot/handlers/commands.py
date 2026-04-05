@@ -1,12 +1,13 @@
 from datetime import datetime
 
+import pandas as pd
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
 from bot.database import request as database_crud
-from bot.database.request import get_topics
-from bot.keyboard import inline
+from bot.database.request import get_all_data
+from models.main import get_results
 from parsers import sites, tg_groups_parser, tgparser, vkpars
 
 router = Router()
@@ -15,14 +16,7 @@ router = Router()
 @router.message(CommandStart())
 async def greeting(message: Message) -> None:
     """Стартовая функция"""
-    topics = await get_topics()
-    buttons_or_None = (
-        inline.generate_inline_kb(topics) if topics else inline.NONE_BUTTON
-    )
-    await message.answer_photo(
-        photo="https://png.klev.club/1733-novosti.html",
-        reply_markup=buttons_or_None,
-    )
+    await message.answer("Сначала '/db', потом '/news', а затем '/top'")
 
 
 @router.message(Command("news"))
@@ -54,3 +48,52 @@ async def send_help(message: Message) -> None:
     """Функция пересоздания базы данных"""
     await database_crud.reload_database()
     await message.answer("База данных успешно обновлена!")
+
+
+@router.message(Command("top"))
+async def show_top(message: Message):
+    await message.answer("🔄 Анализирую данные...")
+
+    data = await get_all_data()
+    data = [
+        {
+            "title": item.title,
+            "text": item.text,
+            "date": item.date,
+            "activity": item.activity,
+            "url": item.url,
+            "source": item.source,
+        }
+        for item in data
+    ]
+
+    df = await get_results(data)
+
+    if df.empty:
+        await message.answer("📭 Тем не найдено")
+        return
+
+    for _, row in df.head(10).iterrows():
+        text = (
+            f"📍 <b>{row['Name'].upper()}</b>\n"
+            f"🔥 Индекс критичности: {row['idx']:.2f}\n"
+            f"📈 Статистика:\n"
+            f"   • Сообщений: {int(row['n'])} | За 2ч: {int(row['v'])}\n"
+            f"   • Негатив: {row['e']:.2f} | Срочность: {row['u']:.1f}\n"
+            f"📝 Сообщения:\n"
+        )
+
+        for i, msg in enumerate(row["messages"][:3]):
+            msg_str = str(msg).strip()
+            if not msg_str or msg_str.lower() == "nan":
+                msg_str = "..."
+            short_msg = msg_str[:80] + "..." if len(msg_str) > 80 else msg_str
+            text += f"   {i + 1}. {short_msg}\n"
+            links = row.get("links", [])
+            if i < len(links) and links[i]:
+                text += f"      🔗 <a href='{links[i]}'>Ссылка</a>\n"
+
+        if row["n"] > 3:
+            text += f"\n   ... и еще {int(row['n']) - 3} сообщений"
+
+        await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
